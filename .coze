@@ -4,6 +4,7 @@ project_type = "web"
 template = "nextjs"
 version = "0.1.8"
 appliedPatches = [ ]
+project_id = "7687443519178506290"
 
 [dev]
 build = [ "bash", "./scripts/prepare.sh" ]
