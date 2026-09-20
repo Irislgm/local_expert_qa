@@ -47,10 +47,10 @@ const sidebarGroups: SidebarGroup[] = [
     ],
   },
   {
-    title: '应急指挥 (迭代2)',
+    title: '应急指挥',
     items: [
-      { label: '应急预案', href: '#', icon: <Shield className="h-4 w-4" /> },
-      { label: '事件中心', href: '#', icon: <Radio className="h-4 w-4" /> },
+      { label: '应急预案', href: '/emergency-plans', icon: <Shield className="h-4 w-4" /> },
+      { label: '事件中心', href: '/events', icon: <Radio className="h-4 w-4" /> },
     ],
   },
   {
