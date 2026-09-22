@@ -66,6 +66,9 @@ src/
 └── storage/database/
     ├── supabase-client.ts      # 服务端 Supabase 客户端
     └── shared/schema.ts        # Drizzle ORM Schema
+
+db/
+└── init.sql                   # 数据库初始化脚本（从线上库导出，含扩展/RPC/表/约束/种子数据）
 ```
 
 ## 数据库表（22张）
