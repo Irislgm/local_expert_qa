@@ -54,9 +54,10 @@ const sidebarGroups: SidebarGroup[] = [
     ],
   },
   {
-    title: 'AI随身专家 (迭代3)',
+    title: 'AI随身专家',
     items: [
-      { label: '知识库管理', href: '#', icon: <Bot className="h-4 w-4" /> },
+      { label: '知识库管理', href: '/knowledge', icon: <Bot className="h-4 w-4" /> },
+      { label: '随身专家对话', href: '/expert', icon: <MessageSquare className="h-4 w-4" /> },
     ],
   },
   {
