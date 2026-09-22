@@ -15,6 +15,9 @@ import {
   Radio,
   Bot,
   Monitor,
+  Database,
+  GitBranch,
+  Activity,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -61,9 +64,11 @@ const sidebarGroups: SidebarGroup[] = [
     ],
   },
   {
-    title: '设备看板 (迭代4)',
+    title: '设备与看板',
     items: [
-      { label: '数据看板', href: '#', icon: <Monitor className="h-4 w-4" /> },
+      { label: '数据看板', href: '/dashboard', icon: <Monitor className="h-4 w-4" /> },
+      { label: '设备数据源', href: '/devices/sources', icon: <Database className="h-4 w-4" /> },
+      { label: '指标映射', href: '/devices/mappings', icon: <GitBranch className="h-4 w-4" /> },
     ],
   },
 ];
