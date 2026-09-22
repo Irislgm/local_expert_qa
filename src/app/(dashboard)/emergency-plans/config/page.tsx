@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,7 +49,7 @@ const metricOptions = [
   { value: 'water_level', label: '水位' },
 ];
 
-export default function PlanConfigPage() {
+function PlanConfigContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const planId = parseInt(searchParams.get('id') || '0');
@@ -364,5 +364,13 @@ export default function PlanConfigPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PlanConfigPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-64">加载中...</div>}>
+      <PlanConfigContent />
+    </Suspense>
   );
 }

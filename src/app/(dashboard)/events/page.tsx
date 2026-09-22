@@ -78,8 +78,8 @@ export default function EventsPage() {
     setLoading(true);
     const params = new URLSearchParams();
     if (search) params.set('search', search);
-    if (statusFilter) params.set('status', statusFilter);
-    if (levelFilter) params.set('level', levelFilter);
+    if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter);
+    if (levelFilter && levelFilter !== 'all') params.set('level', levelFilter);
 
     const res = await fetch(`/api/events?${params}`);
     const data = await res.json();
@@ -146,7 +146,7 @@ export default function EventsPage() {
             <SelectValue placeholder="全部状态" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">全部状态</SelectItem>
+            <SelectItem value="all">全部状态</SelectItem>
             <SelectItem value="active">进行中</SelectItem>
             <SelectItem value="processing">处理中</SelectItem>
             <SelectItem value="resolved">已解决</SelectItem>
@@ -158,7 +158,7 @@ export default function EventsPage() {
             <SelectValue placeholder="全部等级" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">全部等级</SelectItem>
+            <SelectItem value="all">全部等级</SelectItem>
             <SelectItem value="low">低</SelectItem>
             <SelectItem value="medium">中</SelectItem>
             <SelectItem value="high">高</SelectItem>

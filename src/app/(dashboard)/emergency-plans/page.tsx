@@ -88,8 +88,8 @@ export default function EmergencyPlansPage() {
     setLoading(true);
     const params = new URLSearchParams();
     if (search) params.set('search', search);
-    if (categoryFilter) params.set('category', categoryFilter);
-    if (statusFilter) params.set('status', statusFilter);
+    if (categoryFilter && categoryFilter !== 'all') params.set('category', categoryFilter);
+    if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter);
 
     const res = await fetch(`/api/emergency-plans?${params}`);
     const data = await res.json();
@@ -170,7 +170,7 @@ export default function EmergencyPlansPage() {
             <SelectValue placeholder="全部类型" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">全部类型</SelectItem>
+            <SelectItem value="all">全部类型</SelectItem>
             <SelectItem value="fire">火灾</SelectItem>
             <SelectItem value="equipment">设备</SelectItem>
             <SelectItem value="security">安全</SelectItem>
@@ -182,7 +182,7 @@ export default function EmergencyPlansPage() {
             <SelectValue placeholder="全部状态" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">全部状态</SelectItem>
+            <SelectItem value="all">全部状态</SelectItem>
             <SelectItem value="draft">草稿</SelectItem>
             <SelectItem value="active">启用</SelectItem>
             <SelectItem value="disabled">停用</SelectItem>

@@ -58,7 +58,7 @@ export default function MetricMappingsPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const qs = selectedSource ? `?source_id=${selectedSource}` : "";
+      const qs = selectedSource && selectedSource !== "all" ? `?source_id=${selectedSource}` : "";
       const [mapRes, srcRes, devRes] = await Promise.all([
         fetch(`/api/metric-mappings${qs}`),
         fetch("/api/device-sources"),
@@ -124,7 +124,7 @@ export default function MetricMappingsPage() {
           <Select value={selectedSource} onValueChange={setSelectedSource}>
             <SelectTrigger className="w-[200px]"><SelectValue placeholder="全部数据源" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="">全部数据源</SelectItem>
+              <SelectItem value="all">全部数据源</SelectItem>
               {sources.map((s) => <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>)}
             </SelectContent>
           </Select>
@@ -231,10 +231,10 @@ export default function MetricMappingsPage() {
               </div>
               <div>
                 <Label>设备</Label>
-                <Select value={String(form.device_id || "")} onValueChange={(v) => setForm({ ...form, device_id: Number(v) })}>
+                <Select value={String(form.device_id || 0)} onValueChange={(v) => setForm({ ...form, device_id: Number(v) })}>
                   <SelectTrigger><SelectValue placeholder="选择设备(可选)" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">不指定</SelectItem>
+                    <SelectItem value="0">不指定</SelectItem>
                     {devices.filter((d) => !form.device_source_id || d.source_id === form.device_source_id).map((d) => (
                       <SelectItem key={d.id} value={String(d.id)}>{d.device_name}</SelectItem>
                     ))}

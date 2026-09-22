@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -98,7 +98,7 @@ const levelColors: Record<string, string> = {
   critical: 'bg-red-100 text-red-700',
 };
 
-export default function EventDetailPage() {
+function EventDetailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const eventId = parseInt(searchParams.get('id') || '0');
@@ -422,5 +422,13 @@ export default function EventDetailPage() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+export default function EventDetailPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-64">加载中...</div>}>
+      <EventDetailContent />
+    </Suspense>
   );
 }
