@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智慧园区专家问答策略系统 — 系统测试报告</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: "Inter","PingFang SC","Microsoft YaHei",system-ui,sans-serif; background:#f1f5f9; color:#0f172a; line-height:1.7; padding:32px 16px; }
+  .container { max-width:960px; margin:0 auto; }
+  .header { background:linear-gradient(135deg,#1e293b,#0f172a); color:#fff; border-radius:12px; padding:36px 40px; margin-bottom:24px; }
+  .header h1 { font-size:26px; font-weight:700; margin-bottom:8px; }
+  .header .sub { color:#94a3b8; font-size:14px; }
+  .badge { display:inline-block; background:#10b981; color:#fff; padding:4px 14px; border-radius:999px; font-size:13px; font-weight:600; margin-top:12px; }
+  .card { background:#fff; border-radius:12px; padding:24px 28px; margin-bottom:20px; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+  .card h2 { font-size:18px; font-weight:600; margin-bottom:16px; padding-bottom:10px; border-bottom:2px solid #3b82f6; }
+  .card h3 { font-size:15px; font-weight:600; margin:16px 0 10px; color:#1e40af; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { background:#f8fafc; text-align:left; padding:9px 12px; font-weight:600; color:#475569; }
+  td { padding:9px 12px; border-top:1px solid #e2e8f0; }
+  tr:hover td { background:#f8fafc; }
+  .ok { color:#10b981; font-weight:700; }
+  .num { display:inline-flex; align-items:center; justify-content:center; min-width:22px; height:22px; background:#10b981; color:#fff; border-radius:5px; font-size:12px; font-weight:700; }
+  .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:12px 0; }
+  .stat { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px; text-align:center; }
+  .stat .v { font-size:24px; font-weight:700; color:#2563eb; }
+  .stat .l { font-size:12px; color:#64748b; }
+  .note { background:#fffbeb; border-left:4px solid #f59e0b; padding:12px 16px; border-radius:6px; font-size:13px; margin-top:10px; }
+  .fix { font-size:13px; }
+  .fix td:first-child { font-weight:600; color:#b45309; white-space:nowrap; }
+  .footer { text-align:center; color:#94a3b8; font-size:12px; padding:16px 0; }
+  @media (max-width:720px){ .grid{grid-template-columns:repeat(2,1fr);} }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>智慧园区专家问答策略系统 — 系统测试报告</h1>
+    <div class="sub">测试类型：静态检查 · 接口冒烟测试 · 页面可访问性 · 日志健康检查</div>
+    <div class="sub">被测范围：4 大模块 / 24 个 API 接口 / 10 个前端页面</div>
+    <div class="badge">✅ 全部通过</div>
+  </div>
+
+  <div class="card">
+    <h2>1. 测试概览</h2>
+    <div class="grid">
+      <div class="stat"><div class="v">4</div><div class="l">功能迭代</div></div>
+      <div class="stat"><div class="v">24</div><div class="l">API 接口</div></div>
+      <div class="stat"><div class="v">10</div><div class="l">前端页面</div></div>
+      <div class="stat"><div class="v">24</div><div class="l">数据库表</div></div>
+    </div>
+    <table>
+      <tr><th>检查项</th><th>命令</th><th>结果</th></tr>
+      <tr><td>ESLint</td><td>pnpm lint --quiet</td><td class="ok">通过</td></tr>
+      <tr><td>TypeScript 类型检查</td><td>pnpm ts-check</td><td class="ok">通过</td></tr>
+      <tr><td>服务探活</td><td>localhost:5000</td><td class="ok">ready</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>2. 接口冒烟测试（24 / 24 通过）</h2>
+
+    <h3>迭代1：基础管理闭环</h3>
+    <table>
+      <tr><th>接口</th><th>方法</th><th>结果</th></tr>
+      <tr><td>/api/supabase-config</td><td>GET</td><td class="ok">✅ 200</td></tr>
+      <tr><td>/api/departments</td><td>GET / POST</td><td class="ok">✅ 200 / 201</td></tr>
+      <tr><td>/api/contacts</td><td>GET / POST</td><td class="ok">✅ 200 / 201（含部门关联）</td></tr>
+      <tr><td>/api/messages/templates</td><td>GET / POST</td><td class="ok">✅ 200 / 201</td></tr>
+      <tr><td>/api/messages/records</td><td>GET / POST</td><td class="ok">✅ 200 / 201（含模板/联系人关联）</td></tr>
+      <tr><td>/api/work-orders</td><td>GET / POST</td><td class="ok">✅ 200 / 201（含人员关联）</td></tr>
+    </table>
+
+    <h3>迭代2：应急指挥闭环</h3>
+    <table>
+      <tr><th>接口</th><th>方法</th><th>结果</th></tr>
+      <tr><td>/api/emergency-plans</td><td>GET</td><td class="ok">✅ 200（含创建人）</td></tr>
+      <tr><td>/api/emergency-plans/nodes</td><td>GET</td><td class="ok">✅ 200（5 种节点）</td></tr>
+      <tr><td>/api/emergency-plans/triggers</td><td>GET</td><td class="ok">✅ 200（触发规则）</td></tr>
+      <tr><td>/api/events</td><td>GET</td><td class="ok">✅ 200</td></tr>
+      <tr><td>/api/events/detail</td><td>GET</td><td class="ok">✅ 200（事件+计划+进度）</td></tr>
+      <tr><td>/api/events/tasks</td><td>GET</td><td class="ok">✅ 200（含负责人）</td></tr>
+      <tr><td>/api/events/notifications</td><td>GET</td><td class="ok">✅ 200（含接收人）</td></tr>
+      <tr><td>/api/events/ai-report</td><td>GET</td><td class="ok">✅ 200（AI 复盘）</td></tr>
+    </table>
+
+    <h3>迭代3：AI 随身专家</h3>
+    <table>
+      <tr><th>接口</th><th>方法</th><th>结果</th></tr>
+      <tr><td>/api/knowledge-bases</td><td>GET / POST</td><td class="ok">✅ 200 / 201</td></tr>
+      <tr><td>/api/knowledge-documents</td><td>GET</td><td class="ok">✅ 200（3 篇火灾应急文档）</td></tr>
+      <tr><td>/api/conversations</td><td>GET / POST</td><td class="ok">✅ 200 / 201</td></tr>
+      <tr><td>/api/conversations/chat</td><td>POST</td><td class="ok">✅ 200（SSE 流式 LLM 内容）</td></tr>
+    </table>
+
+    <h3>迭代4：设备接入与看板</h3>
+    <table>
+      <tr><th>接口</th><th>方法</th><th>结果</th></tr>
+      <tr><td>/api/device-sources</td><td>GET / POST</td><td class="ok">✅ 200 / 201</td></tr>
+      <tr><td>/api/device-sources/test</td><td>POST</td><td class="ok">✅ 200（连接测试）</td></tr>
+      <tr><td>/api/devices</td><td>GET</td><td class="ok">✅ 200（6 台设备）</td></tr>
+      <tr><td>/api/metric-mappings</td><td>GET / POST</td><td class="ok">✅ 200 / 201</td></tr>
+      <tr><td>/api/telemetry</td><td>GET</td><td class="ok">✅ 200（实时遥测）</td></tr>
+      <tr><td>/api/dashboard</td><td>GET</td><td class="ok">✅ 200（状态+告警+趋势）</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>3. 前端页面可访问性（10 / 10 通过）</h2>
+    <table>
+      <tr><th>页面</th><th>路由</th><th>结果</th></tr>
+      <tr><td>登录页</td><td>/login</td><td class="ok">✅ 200</td></tr>
+      <tr><td>通讯录</td><td>/contacts</td><td class="ok">✅ 200</td></tr>
+      <tr><td>工单管理</td><td>/work-orders</td><td class="ok">✅ 200</td></tr>
+      <tr><td>应急预案</td><td>/emergency-plans</td><td class="ok">✅ 200</td></tr>
+      <tr><td>事件中心</td><td>/events</td><td class="ok">✅ 200</td></tr>
+      <tr><td>知识库</td><td>/knowledge</td><td class="ok">✅ 200</td></tr>
+      <tr><td>随身专家</td><td>/expert</td><td class="ok">✅ 200</td></tr>
+      <tr><td>数据看板</td><td>/dashboard</td><td class="ok">✅ 200</td></tr>
+      <tr><td>设备数据源</td><td>/devices/sources</td><td class="ok">✅ 200</td></tr>
+      <tr><td>指标映射</td><td>/devices/mappings</td><td class="ok">✅ 200</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>4. 日志健康检查</h2>
+    <p>app.log / console.log / dev.log：<span class="ok">✅ 无 Error / Exception / Traceback</span></p>
+    <p style="margin-top:6px;">仅存在一条无害的 Next.js <code>outputFileTracingRoot</code> warning（非错误）。</p>
+  </div>
+
+  <div class="card">
+    <h2>5. 测试期间修复的问题</h2>
+    <table class="fix">
+      <tr><th>问题</th><th>根因</th><th>修复方案</th></tr>
+      <tr><td>迭代1 表未就绪</td><td>schema 未同步</td><td>手动建表 + 外键约束</td></tr>
+      <tr><td>关联查询 500</td><td>外键约束缺失</td><td>补齐 contacts/events 等表外键</td></tr>
+      <tr><td>zod v4 .errors</td><td>v4 改名 issues</td><td>批量替换修复</td></tr>
+      <tr><td>React hooks 时序</td><td>声明在效果之后</td><td>调整声明顺序</td></tr>
+      <tr><td>AI 对话缺 token</td><td>未注入 API Token</td><td>dev.sh 增加 workload token 兜底</td></tr>
+    </table>
+  </div>
+
+  <div class="note">
+    💡 <b>后续建议：</b>数据看板当前为模拟遥测数据，接入真实设备后可替换数据源；<code>/api/conversations/chat</code> 依赖 COZE_API_TOKEN，生产部署需确保环境变量注入。
+  </div>
+
+  <div class="footer">智慧园区专家问答策略系统 · 生成于系统综合回归验证 · 四迭代全部完成</div>
+</div>
+</body>
+</html>
