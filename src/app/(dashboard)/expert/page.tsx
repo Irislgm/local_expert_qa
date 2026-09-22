@@ -65,7 +65,7 @@ export default function ExpertChatPage() {
   };
 
   const fetchMessages = async (conversationId: number) => {
-    const res = await fetch(`/api/conversations/chat/messages?conversation_id=${conversationId}`);
+    const res = await fetch(`/api/conversations/chat?conversation_id=${conversationId}`);
     const data = await res.json();
     setMessages(data || []);
   };
