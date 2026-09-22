@@ -287,6 +287,10 @@ mkdir -p "${LOG_DIR}"
 : > "${LOG_FILE}"
 
 export PORT="${DEPLOY_RUN_PORT}"
+
+# AI SDK 运行时凭据注入：优先 COZE_API_TOKEN，缺失时用 workload token 兜底
+export COZE_API_TOKEN="${COZE_API_TOKEN:-${COZE_WORKLOAD_API_TOKEN:-}}"
+
 server_pid="$(spawn_detached "${COZE_WORKSPACE_PATH}" "${LOG_FILE}" \
   "$(command -v pnpm)" next dev --webpack --hostname 0.0.0.0 --port "${DEPLOY_RUN_PORT}")"
 if [[ -z "${server_pid}" ]]; then
