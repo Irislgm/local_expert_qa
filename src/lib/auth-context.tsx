@@ -1,15 +1,19 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
-import { getSupabaseBrowserClientWithRetry } from '@/lib/supabase-browser';
-import { useSupabaseConfig } from '@/lib/supabase-config-inject';
-import type { SupabaseClient, User, Session } from '@supabase/supabase-js';
+import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
+
+interface User {
+  id: string;
+  email: string;
+  user_metadata?: { full_name?: string; name?: string };
+}
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
+  session: null;
   isLoading: boolean;
-  supabase: SupabaseClient | null;
+  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -17,75 +21,63 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
   isLoading: true,
-  supabase: null,
+  signIn: async () => ({ error: null }),
+  signUp: async () => ({ error: null }),
   signOut: async () => {},
 });
+
+const STORAGE_KEY = 'local_expert_qa_auth';
 
 export function useAuth() {
   return useContext(AuthContext);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { isLoading: isConfigLoading } = useSupabaseConfig();
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
 
   useEffect(() => {
-    if (isConfigLoading) return;
-
-    let mounted = true;
-
-    async function initAuth() {
-      try {
-        const client = await getSupabaseBrowserClientWithRetry();
-        if (!mounted) return;
-
-        setSupabase(client);
-
-        const { data: { session: currentSession } } = await client.auth.getSession();
-        if (!mounted) return;
-
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        setIsLoading(false);
-
-        const { data: { subscription } } = client.auth.onAuthStateChange(
-          (_event, newSession) => {
-            setSession(newSession);
-            setUser(newSession?.user ?? null);
-          }
-        );
-
-        return () => {
-          subscription.unsubscribe();
-        };
-      } catch {
-        if (mounted) {
-          setIsLoading(false);
-        }
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        setUser(JSON.parse(stored));
       }
+    } catch {
+    } finally {
+      setIsLoading(false);
     }
+  }, []);
 
-    initAuth();
-
-    return () => {
-      mounted = false;
+  const signIn = useCallback(async (email: string, _password: string) => {
+    const user: User = {
+      id: 'local-dev-user',
+      email,
+      user_metadata: { full_name: email.split('@')[0] },
     };
-  }, [isConfigLoading]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    setUser(user);
+    return { error: null };
+  }, []);
+
+  const signUp = useCallback(async (email: string, _password: string) => {
+    const user: User = {
+      id: 'local-dev-user',
+      email,
+      user_metadata: { full_name: email.split('@')[0] },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    setUser(user);
+    return { error: null };
+  }, []);
 
   const signOut = useCallback(async () => {
-    if (supabase) {
-      await supabase.auth.signOut();
-      setSession(null);
-      setUser(null);
-      window.location.href = '/login';
-    }
-  }, [supabase]);
+    localStorage.removeItem(STORAGE_KEY);
+    setUser(null);
+    window.location.href = '/login';
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, session, isLoading, supabase, signOut }}>
+    <AuthContext.Provider value={{ user, session: null, isLoading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

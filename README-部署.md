@@ -25,6 +25,7 @@ cp .env.example .env.local
 
 # 4. 启动开发模式
 pnpm run dev
+pnpm next dev --webpack --hostname 0.0.0.0 --port 3100
 #   http://localhost:3000
 
 # 5. 构建并运行生产模式

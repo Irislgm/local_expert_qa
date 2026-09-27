@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/storage/database/supabase-client';
+import { getDbClient } from '@/storage/database/db-client';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   const page = Number(searchParams.get('page') || '1');
   const pageSize = Number(searchParams.get('page_size') || '20');
 
-  const client = getSupabaseClient();
+  const client = getDbClient();
 
   if (countOnly) {
     let query = client.from('work_orders').select('*', { count: 'exact', head: true });
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const client = getSupabaseClient();
+  const client = getDbClient();
 
   // Generate order number
   const now = new Date();
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   const body = await request.json();
-  const client = getSupabaseClient();
+  const client = getDbClient();
 
   // Get current status for logging
   const { data: current } = await client
@@ -139,7 +139,7 @@ export async function DELETE(request: NextRequest) {
   const id = searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
 
-  const client = getSupabaseClient();
+  const client = getDbClient();
   // Delete logs first
   await client.from('work_order_logs').delete().eq('work_order_id', Number(id));
   const { error } = await client.from('work_orders').delete().eq('id', Number(id));

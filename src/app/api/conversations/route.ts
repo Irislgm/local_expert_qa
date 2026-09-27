@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseClient } from "@/storage/database/supabase-client";
+import { getDbClient } from "@/storage/database/db-client";
 
 // GET /api/conversations - 获取对话列表
 export async function GET(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("user_id");
     const page = parseInt(searchParams.get("page") || "1");
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    let query = supabase
+    let query = db
       .from("conversations")
       .select("*, knowledge_bases(name)", { count: "exact" });
 
@@ -34,11 +34,11 @@ export async function GET(request: NextRequest) {
 // POST /api/conversations - 创建对话
 export async function POST(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
     const body = await request.json();
     const { title, user_id, knowledge_base_id } = body;
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from("conversations")
       .insert({
         title: title || "新对话",
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
 // DELETE /api/conversations - 删除对话
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
@@ -69,7 +69,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "对话ID不能为空" }, { status: 400 });
     }
 
-    const { error } = await supabase.from("conversations").delete().eq("id", parseInt(id));
+    const { error } = await db.from("conversations").delete().eq("id", parseInt(id));
 
     if (error) throw error;
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/storage/database/supabase-client';
+import { getDbClient } from '@/storage/database/db-client';
 
 // 获取事件任务列表
 export async function GET(request: NextRequest) {
@@ -7,8 +7,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const eventId = searchParams.get('event_id');
 
-    const supabase = getSupabaseClient();
-    let query = supabase
+    const db = getDbClient();
+    let query = db
       .from('event_tasks')
       .select('*')
       .order('created_at', { ascending: true });
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     let contactsMap: Record<number, { id: number; name: string }> = {};
     
     if (assigneeIds.length > 0) {
-      const { data: contacts } = await supabase
+      const { data: contacts } = await db
         .from('contacts')
         .select('id, name')
         .in('id', assigneeIds);
@@ -46,9 +46,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('event_tasks')
       .insert(body)
       .select()
@@ -67,14 +67,14 @@ export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const { id, ...updateData } = body;
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
 
     // 如果状态改为 completed，自动设置完成时间
     if (updateData.status === 'completed') {
       updateData.completed_at = new Date().toISOString();
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('event_tasks')
       .update({ ...updateData, updated_at: new Date().toISOString() })
       .eq('id', id)

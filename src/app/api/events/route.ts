@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/storage/database/supabase-client';
+import { getDbClient } from '@/storage/database/db-client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,8 +10,8 @@ export async function GET(request: NextRequest) {
     const level = searchParams.get('level');
     const search = searchParams.get('search');
 
-    const supabase = getSupabaseClient();
-    let query = supabase
+    const db = getDbClient();
+    let query = db
       .from('events')
       .select('*', { count: 'exact' })
       .order('created_at', { ascending: false })
@@ -34,13 +34,13 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
 
     // 生成事件编号
     const eventNo = `EV${new Date().toISOString().slice(0, 10).replace(/-/g, '')}${String(Date.now()).slice(-6)}`;
     const insertData = { ...body, event_no: eventNo };
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('events')
       .insert(insertData)
       .select()
@@ -58,9 +58,9 @@ export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const { id, ...updateData } = body;
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('events')
       .update({ ...updateData, updated_at: new Date().toISOString() })
       .eq('id', id)

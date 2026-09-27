@@ -79,10 +79,9 @@ export default function ContactsPage() {
       if (search) params.set('search', search);
       const res = await fetch(`/api/contacts?${params}`);
       const result = await res.json();
-      setContacts(result.data || []);
+      setContacts(Array.isArray(result.data) ? result.data : []);
       setTotal(result.total || 0);
     } catch {
-      // fetch failed
     } finally {
       setLoading(false);
     }
@@ -92,9 +91,8 @@ export default function ContactsPage() {
     try {
       const res = await fetch('/api/departments');
       const data = await res.json();
-      setDepartments(data || []);
+      setDepartments(Array.isArray(data) ? data : []);
     } catch {
-      // fetch failed
     }
   };
 

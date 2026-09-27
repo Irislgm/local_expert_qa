@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseClient } from "@/storage/database/supabase-client";
+import { getDbClient } from "@/storage/database/db-client";
 import { EmbeddingClient, HeaderUtils } from "coze-coding-dev-sdk";
 
 // 文本分块函数
@@ -30,7 +30,7 @@ function splitIntoChunks(text: string, chunkSize: number = 500, overlap: number 
 // GET /api/knowledge-documents - 获取知识文档列表
 export async function GET(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
     const { searchParams } = new URL(request.url);
     const knowledgeBaseId = searchParams.get("knowledge_base_id");
     const status = searchParams.get("status");
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    let query = supabase
+    let query = db
       .from("knowledge_documents")
       .select("*, knowledge_bases(name)", { count: "exact" });
 
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 // POST /api/knowledge-documents - 创建知识文档并自动向量化
 export async function POST(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
     const body = await request.json();
     const { knowledge_base_id, title, content, source_type, source_url, created_by } = body;
 
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 创建文档
-    const { data: doc, error: docError } = await supabase
+    const { data: doc, error: docError } = await db
       .from("knowledge_documents")
       .insert({
         knowledge_base_id,
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
 
     // 批量插入分块
     if (chunkRecords.length > 0) {
-      const { error: chunkError } = await supabase
+      const { error: chunkError } = await db
         .from("knowledge_chunks")
         .insert(chunkRecords);
 
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 更新文档状态和统计
-    await supabase
+    await db
       .from("knowledge_documents")
       .update({
         status: "processed",
@@ -129,25 +129,25 @@ export async function POST(request: NextRequest) {
       .eq("id", doc.id);
 
     // 更新知识库统计
-    const { count: docCount } = await supabase
+    const { count: docCount } = await db
       .from("knowledge_documents")
       .select("*", { count: "exact", head: true })
       .eq("knowledge_base_id", knowledge_base_id);
 
-    const { count: chunkCount } = await supabase
+    const { count: chunkCount } = await db
       .from("knowledge_chunks")
       .select("*", { count: "exact", head: true })
       .in(
         "document_id",
         (
-          await supabase
+          await db
             .from("knowledge_documents")
             .select("id")
             .eq("knowledge_base_id", knowledge_base_id)
         ).data?.map((d: { id: number }) => d.id) || []
       );
 
-    await supabase
+    await db
       .from("knowledge_bases")
       .update({
         document_count: docCount || 0,
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
 // DELETE /api/knowledge-documents - 删除知识文档
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
@@ -175,25 +175,25 @@ export async function DELETE(request: NextRequest) {
     }
 
     // 获取文档信息以更新知识库统计
-    const { data: doc } = await supabase
+    const { data: doc } = await db
       .from("knowledge_documents")
       .select("knowledge_base_id")
       .eq("id", parseInt(id))
       .single();
 
     // 删除文档（级联删除分块）
-    const { error } = await supabase.from("knowledge_documents").delete().eq("id", parseInt(id));
+    const { error } = await db.from("knowledge_documents").delete().eq("id", parseInt(id));
 
     if (error) throw error;
 
     // 更新知识库统计
     if (doc) {
-      const { count: docCount } = await supabase
+      const { count: docCount } = await db
         .from("knowledge_documents")
         .select("*", { count: "exact", head: true })
         .eq("knowledge_base_id", doc.knowledge_base_id);
 
-      await supabase
+      await db
         .from("knowledge_bases")
         .update({
           document_count: docCount || 0,

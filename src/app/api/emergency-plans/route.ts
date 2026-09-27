@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/storage/database/supabase-client';
+import { getDbClient } from '@/storage/database/db-client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,8 +10,8 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const search = searchParams.get('search');
 
-    const supabase = getSupabaseClient();
-    let query = supabase
+    const db = getDbClient();
+    let query = db
       .from('emergency_plans')
       .select('*, creator:contacts(id, name)', { count: 'exact' })
       .order('created_at', { ascending: false })
@@ -34,9 +34,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('emergency_plans')
       .insert(body)
       .select()
@@ -54,9 +54,9 @@ export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const { id, ...updateData } = body;
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('emergency_plans')
       .update({ ...updateData, updated_at: new Date().toISOString() })
       .eq('id', id)
@@ -75,9 +75,9 @@ export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
 
-    const { error } = await supabase
+    const { error } = await db
       .from('emergency_plans')
       .delete()
       .eq('id', id);

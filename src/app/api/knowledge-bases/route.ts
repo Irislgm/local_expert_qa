@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseClient } from "@/storage/database/supabase-client";
+import { getDbClient } from "@/storage/database/db-client";
 import { HeaderUtils, EmbeddingClient } from "coze-coding-dev-sdk";
 
 // GET /api/knowledge-bases - 获取知识库列表
 export async function GET(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
     const status = searchParams.get("status");
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    let query = supabase.from("knowledge_bases").select("*", { count: "exact" });
+    let query = db.from("knowledge_bases").select("*", { count: "exact" });
 
     if (category) query = query.eq("category", category);
     if (status) query = query.eq("status", status);
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 // POST /api/knowledge-bases - 创建知识库
 export async function POST(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
     const body = await request.json();
     const { name, description, category, created_by } = body;
 
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "知识库名称不能为空" }, { status: 400 });
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from("knowledge_bases")
       .insert({ name, description, category, created_by, status: "active" })
       .select()
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
 // PUT /api/knowledge-bases - 更新知识库
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
     const body = await request.json();
     const { id, name, description, category, status } = body;
 
@@ -77,7 +77,7 @@ export async function PUT(request: NextRequest) {
     if (category !== undefined) updateData.category = category;
     if (status !== undefined) updateData.status = status;
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from("knowledge_bases")
       .update(updateData)
       .eq("id", id)
@@ -96,7 +96,7 @@ export async function PUT(request: NextRequest) {
 // DELETE /api/knowledge-bases - 删除知识库
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
@@ -104,7 +104,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "知识库ID不能为空" }, { status: 400 });
     }
 
-    const { error } = await supabase.from("knowledge_bases").delete().eq("id", parseInt(id));
+    const { error } = await db.from("knowledge_bases").delete().eq("id", parseInt(id));
 
     if (error) throw error;
 

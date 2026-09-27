@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/storage/database/supabase-client';
+import { getDbClient } from '@/storage/database/db-client';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   const page = Number(searchParams.get('page') || '1');
   const pageSize = Number(searchParams.get('page_size') || '20');
 
-  const client = getSupabaseClient();
+  const client = getDbClient();
 
   if (countOnly) {
     let query = client.from('message_templates').select('*', { count: 'exact', head: true });
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const client = getSupabaseClient();
+  const client = getDbClient();
 
   const { data, error } = await client
     .from('message_templates')
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   const body = await request.json();
-  const client = getSupabaseClient();
+  const client = getDbClient();
 
   const { data, error } = await client
     .from('message_templates')
@@ -85,7 +85,7 @@ export async function DELETE(request: NextRequest) {
   const id = searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
 
-  const client = getSupabaseClient();
+  const client = getDbClient();
   const { error } = await client.from('message_templates').delete().eq('id', Number(id));
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ success: true });

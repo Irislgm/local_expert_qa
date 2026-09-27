@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/storage/database/supabase-client';
+import { getDbClient } from '@/storage/database/db-client';
 
 // 获取触发规则
 export async function GET(request: NextRequest) {
@@ -7,8 +7,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const planId = searchParams.get('plan_id');
 
-    const supabase = getSupabaseClient();
-    let query = supabase
+    const db = getDbClient();
+    let query = db
       .from('emergency_plan_triggers')
       .select('*')
       .order('created_at', { ascending: false });
@@ -29,9 +29,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('emergency_plan_triggers')
       .insert(body)
       .select()
@@ -49,9 +49,9 @@ export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const { id, ...updateData } = body;
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('emergency_plan_triggers')
       .update({ ...updateData, updated_at: new Date().toISOString() })
       .eq('id', id)
@@ -70,9 +70,9 @@ export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
 
-    const { error } = await supabase
+    const { error } = await db
       .from('emergency_plan_triggers')
       .delete()
       .eq('id', id);

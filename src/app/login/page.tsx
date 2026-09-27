@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSupabaseConfig } from '@/lib/supabase-config-inject';
-import { getSupabaseBrowserClientWithRetry } from '@/lib/supabase-browser';
+import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,7 +11,7 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { isLoading: isConfigLoading } = useSupabaseConfig();
+  const { user, isLoading, signIn, signUp } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,59 +21,36 @@ export default function LoginPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (isConfigLoading) return;
-    async function checkAuth() {
-      try {
-        const supabase = await getSupabaseBrowserClientWithRetry();
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          router.replace('/');
-        }
-      } catch {
-        // not ready yet
-      }
+    if (!isLoading && user) {
+      router.replace('/');
     }
-    checkAuth();
-  }, [isConfigLoading, router]);
+  }, [isLoading, user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    try {
-      const supabase = await getSupabaseBrowserClientWithRetry();
+    if (!isLogin && password !== confirmPassword) {
+      setError('两次输入的密码不一致');
+      setLoading(false);
+      return;
+    }
+    if (!isLogin && password.length < 6) {
+      setError('密码长度至少为6位');
+      setLoading(false);
+      return;
+    }
 
-      if (isLogin) {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (signInError) {
-          setError('邮箱或密码错误，请重试');
-          setLoading(false);
-          return;
-        }
-      } else {
-        if (password !== confirmPassword) {
-          setError('两次输入的密码不一致');
-          setLoading(false);
-          return;
-        }
-        if (password.length < 6) {
-          setError('密码长度至少为6位');
-          setLoading(false);
-          return;
-        }
-        const { error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-        if (signUpError) {
-          setError(signUpError.message);
-          setLoading(false);
-          return;
-        }
+    try {
+      const result = isLogin
+        ? await signIn(email, password)
+        : await signUp(email, password);
+
+      if (result.error) {
+        setError(result.error);
+        setLoading(false);
+        return;
       }
 
       router.replace('/');
@@ -85,7 +61,7 @@ export default function LoginPage() {
     }
   };
 
-  if (isConfigLoading) {
+  if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <Loader2 className="h-8 w-8 animate-spin text-blue-500" />

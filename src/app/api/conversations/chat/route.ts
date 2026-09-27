@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseClient } from "@/storage/database/supabase-client";
+import { getDbClient } from "@/storage/database/db-client";
 import { LLMClient, EmbeddingClient, Config, HeaderUtils } from "coze-coding-dev-sdk";
 
 // 向量相似度搜索
@@ -8,14 +8,14 @@ async function searchKnowledge(
   knowledgeBaseId: number,
   topK: number = 3
 ): Promise<string[]> {
-  const supabase = getSupabaseClient();
+  const db = getDbClient();
   const embeddingClient = new EmbeddingClient();
 
   // 生成查询向量
   const queryEmbedding = await embeddingClient.embedText(query, { dimensions: 1024 });
 
   // 获取知识库中的文档ID
-  const { data: docs } = await supabase
+  const { data: docs } = await db
     .from("knowledge_documents")
     .select("id")
     .eq("knowledge_base_id", knowledgeBaseId)
@@ -26,7 +26,7 @@ async function searchKnowledge(
   const docIds = docs.map((d: { id: number }) => d.id);
 
   // 使用 pgvector 进行相似度搜索
-  const { data: chunks } = await supabase.rpc("match_knowledge_chunks", {
+  const { data: chunks } = await db.rpc("match_knowledge_chunks", {
     query_embedding: JSON.stringify(queryEmbedding),
     match_document_ids: docIds,
     match_count: topK,
@@ -40,7 +40,7 @@ async function searchKnowledge(
 // POST /api/conversations/chat - 对话（流式响应）
 export async function POST(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
     const body = await request.json();
     const { conversation_id, message, knowledge_base_id } = body;
 
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     const customHeaders = HeaderUtils.extractForwardHeaders(request.headers);
 
     // 保存用户消息
-    const { data: userMsg, error: userMsgError } = await supabase
+    const { data: userMsg, error: userMsgError } = await db
       .from("conversation_messages")
       .insert({
         conversation_id,
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 获取历史消息
-    const { data: history } = await supabase
+    const { data: history } = await db
       .from("conversation_messages")
       .select("role, content")
       .eq("conversation_id", conversation_id)
@@ -144,7 +144,7 @@ ${context}
           }
 
           // 保存助手回复
-          await supabase.from("conversation_messages").insert({
+          await db.from("conversation_messages").insert({
             conversation_id,
             role: "assistant",
             content: fullResponse,
@@ -153,12 +153,12 @@ ${context}
           });
 
           // 更新对话统计
-          const { count } = await supabase
+          const { count } = await db
             .from("conversation_messages")
             .select("*", { count: "exact", head: true })
             .eq("conversation_id", conversation_id);
 
-          await supabase
+          await db
             .from("conversations")
             .update({
               message_count: count || 0,
@@ -168,7 +168,7 @@ ${context}
 
           // 更新对话标题（如果是第一条消息）
           if ((count || 0) <= 2) {
-            await supabase
+            await db
               .from("conversations")
               .update({ title: message.slice(0, 50) })
               .eq("id", conversation_id);
@@ -198,7 +198,7 @@ ${context}
 // GET /api/conversations/chat/messages - 获取对话消息
 export async function GET(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
     const { searchParams } = new URL(request.url);
     const conversationId = searchParams.get("conversation_id");
 
@@ -206,7 +206,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "对话ID不能为空" }, { status: 400 });
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from("conversation_messages")
       .select("*")
       .eq("conversation_id", parseInt(conversationId))

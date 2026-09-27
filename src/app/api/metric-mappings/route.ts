@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseClient } from "@/storage/database/supabase-client";
+import { getDbClient } from "@/storage/database/db-client";
 import { z } from "zod";
 
 const mappingSchema = z.object({
@@ -22,9 +22,9 @@ export async function GET(req: NextRequest) {
   const page = parseInt(searchParams.get("page") || "1");
   const pageSize = parseInt(searchParams.get("page_size") || "20");
   const start = (page - 1) * pageSize;
-  const supabase = getSupabaseClient();
+  const db = getDbClient();
 
-  let query = supabase.from("metric_mappings").select("*", { count: "exact" });
+  let query = db.from("metric_mappings").select("*", { count: "exact" });
   if (sourceId) query = query.eq("device_source_id", sourceId);
 
   const { data, error, count } = await query
@@ -40,8 +40,8 @@ export async function POST(req: NextRequest) {
   const parsed = mappingSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
 
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase
+  const db = getDbClient();
+  const { data, error } = await db
     .from("metric_mappings")
     .insert(parsed.data)
     .select()
@@ -60,8 +60,8 @@ export async function PUT(req: NextRequest) {
   const parsed = mappingSchema.partial().safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
 
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase
+  const db = getDbClient();
+  const { data, error } = await db
     .from("metric_mappings")
     .update({ ...parsed.data, updated_at: new Date().toISOString() })
     .eq("id", id)
@@ -77,8 +77,8 @@ export async function DELETE(req: NextRequest) {
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
-  const supabase = getSupabaseClient();
-  const { error } = await supabase.from("metric_mappings").delete().eq("id", id);
+  const db = getDbClient();
+  const { error } = await db.from("metric_mappings").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ success: true });
 }

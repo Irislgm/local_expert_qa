@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/storage/database/supabase-client';
+import { getDbClient } from '@/storage/database/db-client';
 
 // 获取事件详情（包含节点进度、任务、通知、AI报告）
 export async function GET(request: NextRequest) {
@@ -11,10 +11,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'event_id is required' }, { status: 400 });
     }
 
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
 
     // 获取事件基本信息
-    const { data: event, error: eventError } = await supabase
+    const { data: event, error: eventError } = await db
       .from('events')
       .select('*')
       .eq('id', parseInt(eventId))
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     // 获取关联的预案信息
     let plan = null;
     if (event?.plan_id) {
-      const { data: planData } = await supabase
+      const { data: planData } = await db
         .from('emergency_plans')
         .select('id, name, category')
         .eq('id', event.plan_id)
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     // 获取创建人信息
     let creator = null;
     if (event?.created_by) {
-      const { data: creatorData } = await supabase
+      const { data: creatorData } = await db
         .from('contacts')
         .select('id, name')
         .eq('id', event.created_by)
@@ -45,28 +45,28 @@ export async function GET(request: NextRequest) {
     }
 
     // 获取节点进度
-    const { data: progress } = await supabase
+    const { data: progress } = await db
       .from('event_node_progress')
       .select('*')
       .eq('event_id', parseInt(eventId))
       .order('created_at', { ascending: true });
 
     // 获取任务列表
-    const { data: tasks } = await supabase
+    const { data: tasks } = await db
       .from('event_tasks')
       .select('*')
       .eq('event_id', parseInt(eventId))
       .order('created_at', { ascending: true });
 
     // 获取通知列表
-    const { data: notifications } = await supabase
+    const { data: notifications } = await db
       .from('event_notifications')
       .select('*')
       .eq('event_id', parseInt(eventId))
       .order('created_at', { ascending: true });
 
     // 获取AI复盘报告
-    const { data: aiReport } = await supabase
+    const { data: aiReport } = await db
       .from('event_ai_reports')
       .select('*')
       .eq('event_id', parseInt(eventId))
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
     let contactsMap: Record<number, { id: number; name: string }> = {};
     
     if (allContactIds.length > 0) {
-      const { data: contacts } = await supabase
+      const { data: contacts } = await db
         .from('contacts')
         .select('id, name')
         .in('id', allContactIds);

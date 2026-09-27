@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseClient } from "@/storage/database/supabase-client";
+import { getDbClient } from "@/storage/database/db-client";
 
 // 获取设备遥测数据（带模拟实时数据）
 export async function GET(req: NextRequest) {
@@ -8,9 +8,9 @@ export async function GET(req: NextRequest) {
   const metric = searchParams.get("metric") || "";
   const hours = parseInt(searchParams.get("hours") || "24");
   const limit = parseInt(searchParams.get("limit") || "50");
-  const supabase = getSupabaseClient();
+  const db = getDbClient();
 
-  let query = supabase.from("device_telemetry").select("*");
+  let query = db.from("device_telemetry").select("*");
   if (deviceId) query = query.eq("device_id", deviceId);
   if (metric) query = query.eq("metric_key", metric);
 
@@ -32,8 +32,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "device_id, metric_key, metric_value 为必填项" }, { status: 400 });
   }
 
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase
+  const db = getDbClient();
+  const { data, error } = await db
     .from("device_telemetry")
     .insert({
       device_id,

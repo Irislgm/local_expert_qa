@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/storage/database/supabase-client';
+import { getDbClient } from '@/storage/database/db-client';
 
 // 获取AI复盘报告
 export async function GET(request: NextRequest) {
@@ -11,14 +11,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'event_id is required' }, { status: 400 });
     }
 
-    const supabase = getSupabaseClient();
-    const { data, error } = await supabase
+    const db = getDbClient();
+    const { data, error } = await db
       .from('event_ai_reports')
       .select('*')
       .eq('event_id', parseInt(eventId))
       .single();
 
-    if (error && error.code !== 'PGRST116') throw error; // PGRST116 = not found
+    if (error) throw error;
 
     return NextResponse.json(data || null);
   } catch (error: unknown) {
@@ -32,10 +32,10 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { event_id } = body;
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
 
     // 获取事件信息用于生成报告
-    const { data: event } = await supabase
+    const { data: event } = await db
       .from('events')
       .select('*, plan:emergency_plans(name)')
       .eq('id', event_id)
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 获取节点进度
-    const { data: progress } = await supabase
+    const { data: progress } = await db
       .from('event_node_progress')
       .select('*')
       .eq('event_id', event_id)
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     };
 
     // 保存报告
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('event_ai_reports')
       .insert(report)
       .select()

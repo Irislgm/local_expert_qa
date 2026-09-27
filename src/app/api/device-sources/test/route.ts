@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseClient } from "@/storage/database/supabase-client";
+import { getDbClient } from "@/storage/database/db-client";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const { db_type, host, port, database_name, username, password } = body;
-  const supabase = getSupabaseClient();
+  const db = getDbClient();
 
   // 模拟连接测试延迟
   await new Promise((r) => setTimeout(r, 500));
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
   // 测试成功后更新数据源状态
   if (result.data.connected) {
-    const { error } = await supabase
+    const { error } = await db
       .from("device_sources")
       .update({ status: "connected", last_connected_at: new Date().toISOString(), updated_at: new Date().toISOString() })
       .eq("id", body.source_id || 0);

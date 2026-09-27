@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/storage/database/supabase-client';
+import { getDbClient } from '@/storage/database/db-client';
 
 // 获取预案节点列表
 export async function GET(request: NextRequest) {
@@ -7,8 +7,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const planId = searchParams.get('plan_id');
 
-    const supabase = getSupabaseClient();
-    let query = supabase
+    const db = getDbClient();
+    let query = db
       .from('emergency_plan_nodes')
       .select('*')
       .order('node_order', { ascending: true });
@@ -30,10 +30,10 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { plan_id, nodes } = body;
-    const supabase = getSupabaseClient();
+    const db = getDbClient();
 
     // 先删除旧节点
-    await supabase.from('emergency_plan_nodes').delete().eq('plan_id', plan_id);
+    await db.from('emergency_plan_nodes').delete().eq('plan_id', plan_id);
 
     // 插入新节点
     const nodesWithPlanId = nodes.map((node: { node_type: string; node_name: string; node_order: number; config?: object }, index: number) => ({
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       config: node.config || {},
     }));
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('emergency_plan_nodes')
       .insert(nodesWithPlanId)
       .select();

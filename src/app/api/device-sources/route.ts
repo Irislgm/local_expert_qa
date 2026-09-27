@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseClient } from "@/storage/database/supabase-client";
+import { getDbClient } from "@/storage/database/db-client";
 import { z } from "zod";
 
 const sourceSchema = z.object({
@@ -18,9 +18,9 @@ export async function GET(req: NextRequest) {
   const page = parseInt(searchParams.get("page") || "1");
   const pageSize = parseInt(searchParams.get("page_size") || "10");
   const start = (page - 1) * pageSize;
-  const supabase = getSupabaseClient();
+  const db = getDbClient();
 
-  const { data, error, count } = await supabase
+  const { data, error, count } = await db
     .from("device_sources")
     .select("*", { count: "exact" })
     .order("id", { ascending: false })
@@ -36,8 +36,8 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
   }
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase
+  const db = getDbClient();
+  const { data, error } = await db
     .from("device_sources")
     .insert(parsed.data)
     .select()
@@ -57,8 +57,8 @@ export async function PUT(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
   }
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase
+  const db = getDbClient();
+  const { data, error } = await db
     .from("device_sources")
     .update({ ...parsed.data, updated_at: new Date().toISOString() })
     .eq("id", id)
@@ -74,8 +74,8 @@ export async function DELETE(req: NextRequest) {
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
-  const supabase = getSupabaseClient();
-  const { error } = await supabase.from("device_sources").delete().eq("id", id);
+  const db = getDbClient();
+  const { error } = await db.from("device_sources").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ success: true });
 }

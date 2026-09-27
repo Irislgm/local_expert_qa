@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseClient } from "@/storage/database/supabase-client";
+import { getDbClient } from "@/storage/database/db-client";
 
 // 数据看板聚合接口
 export async function GET(req: NextRequest) {
-  const supabase = getSupabaseClient();
+  const db = getDbClient();
 
   // 1. 设备状态汇总
   const [devicesRes, alertsRes, telemetryRes, sourcesRes] = await Promise.all([
-    supabase.from("devices").select("*"),
-    supabase.from("device_telemetry").select("*").eq("status", "alarm"),
-    supabase.from("device_telemetry").select("*").order("collected_at", { ascending: false }).limit(200),
-    supabase.from("device_sources").select("*"),
+    db.from("devices").select("*"),
+    db.from("device_telemetry").select("*").eq("status", "alarm"),
+    db.from("device_telemetry").select("*").order("collected_at", { ascending: false }).limit(200),
+    db.from("device_sources").select("*"),
   ]);
 
   const errObj =
